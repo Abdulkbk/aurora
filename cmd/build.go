@@ -140,7 +140,7 @@ func runBuild(cmd *cobra.Command, args []string) error {
 	err = builder.Build(ctx, docker.BuildOptions{
 		GitURL:   gitURL,
 		Checkout: gitBranch,
-		Tag:      imageTag,
+		Tag:      imageTag + ":aurora",
 		NodeType: effectiveNodeType,
 	})
 	if err != nil {
