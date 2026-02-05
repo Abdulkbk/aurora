@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/abdulkbk/aurora/internal/docker"
 	"github.com/abdulkbk/aurora/internal/github"
 	"github.com/spf13/cobra"
 )
@@ -111,20 +113,44 @@ func runBuild(cmd *cobra.Command, args []string) error {
 		fmt.Printf("🌿 Branch: %s\n", gitBranch)
 	}
 
-	if nodeType != "" {
-		fmt.Printf("📦 Type:   %s\n", nodeType)
+	// Determine node type (default to lnd for now)
+	effectiveNodeType := nodeType
+	if effectiveNodeType == "" {
+		effectiveNodeType = "lnd"
+		fmt.Printf("📦 Type:   %s (default)\n", effectiveNodeType)
 	} else {
-		fmt.Println("📦 Type:   (will auto-detect)")
+		fmt.Printf("📦 Type:   %s\n", effectiveNodeType)
 	}
 
 	fmt.Printf("🏷️  Tag:    %s\n", imageTag)
 	fmt.Println()
 
-	// Store for next step
-	_ = gitURL
-	_ = gitBranch
+	// Create Docker builder
+	builder, err := docker.NewBuilder()
+	if err != nil {
+		return fmt.Errorf("failed to initialize Docker: %w", err)
+	}
 
-	fmt.Println("⚠️  Docker build coming in Step 3...")
+	// Build the image
+	fmt.Println("🔨 Building Docker image...")
+	fmt.Println("----------------------------")
+
+	ctx := context.Background()
+	err = builder.Build(ctx, docker.BuildOptions{
+		GitURL:   gitURL,
+		Checkout: gitBranch,
+		Tag:      imageTag,
+		NodeType: effectiveNodeType,
+	})
+	if err != nil {
+		return fmt.Errorf("build failed: %w", err)
+	}
+
+	fmt.Println()
+	fmt.Println("----------------------------")
+	fmt.Printf("✅ Build complete! Image: %s\n", imageTag)
+	fmt.Println()
+	fmt.Println("To use in Polar, add this as a custom node image.")
 
 	return nil
 }
