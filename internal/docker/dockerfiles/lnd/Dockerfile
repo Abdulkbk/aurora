@@ -1,6 +1,6 @@
 # If you change this please also update GO_VERSION in Makefile (then run
 # `make lint` to see where else it needs to be updated as well).
-FROM golang:1.25.5-alpine as builder
+FROM golang:1.25.5-alpine AS builder
 
 # Force Go to use the cgo based DNS resolver. This is required to ensure DNS
 # queries required to connect to linked containers succeed.
@@ -23,7 +23,7 @@ RUN apk add --no-cache --update alpine-sdk \
 &&  make release-install
 
 # Start a new, final image.
-FROM alpine as final
+FROM alpine AS final
 
 # Define a root volume for data persistence.
 VOLUME /root/.lnd

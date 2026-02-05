@@ -10,7 +10,8 @@ import (
 )
 
 // Supported node types in Polar
-var supportedNodeTypes = []string{"bitcoind", "lnd", "eclair", "cln", "litd", "tapd"}
+// TODO: Add support for other node types (we only support lnd for now).
+var supportedNodeTypes = []string{"lnd"}
 
 // Build command flags
 var (
