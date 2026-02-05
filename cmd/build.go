@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/abdulkbk/aurora/internal/github"
 	"github.com/spf13/cobra"
 )
 
@@ -68,26 +69,62 @@ func runBuild(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid node type %q, must be one of: %v", nodeType, supportedNodeTypes)
 	}
 
-	// Placeholder - actual implementation will come in future steps
 	fmt.Println("🚀 Aurora Build")
 	fmt.Println("===============")
 
+	var gitURL, gitBranch string
+
 	if prURL != "" {
-		fmt.Printf("PR URL:    %s\n", prURL)
+		// Parse PR URL and fetch details from GitHub API
+		prInfo, err := github.ParsePRURL(prURL)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("📋 PR:     %s/%s#%d\n", prInfo.Owner, prInfo.Repo, prInfo.PRNumber)
+		fmt.Println("🔍 Fetching PR details from GitHub...")
+
+		client := github.NewClient()
+		prDetails, err := client.GetPRDetails(prInfo.Owner, prInfo.Repo, prInfo.PRNumber)
+		if err != nil {
+			return fmt.Errorf("failed to fetch PR details: %w", err)
+		}
+
+		fmt.Printf("📝 Title:  %s\n", prDetails.Title)
+		fmt.Printf("📊 State:  %s\n", prDetails.State)
+		fmt.Printf("🔗 Fork:   %s\n", prDetails.ForkURL)
+		fmt.Printf("🌿 Branch: %s\n", prDetails.Branch)
+
+		gitURL = prDetails.ForkURL
+		gitBranch = prDetails.Branch
 	} else {
-		fmt.Printf("Repo URL:  %s\n", repoURL)
-		fmt.Printf("Branch:    %s\n", branch)
+		// Use direct repo/branch input
+		repoInfo, err := github.ParseRepoURL(repoURL)
+		if err != nil {
+			return err
+		}
+
+		gitURL = repoInfo.CloneURL()
+		gitBranch = branch
+
+		fmt.Printf("🔗 Repo:   %s\n", gitURL)
+		fmt.Printf("🌿 Branch: %s\n", gitBranch)
 	}
 
 	if nodeType != "" {
-		fmt.Printf("Node Type: %s\n", nodeType)
+		fmt.Printf("📦 Type:   %s\n", nodeType)
 	} else {
-		fmt.Println("Node Type: (will auto-detect)")
+		fmt.Println("📦 Type:   (will auto-detect)")
 	}
 
-	fmt.Printf("Tag:       %s\n", imageTag)
+	fmt.Printf("🏷️  Tag:    %s\n", imageTag)
 	fmt.Println()
-	fmt.Println("⚠️  Build functionality coming in Step 2-4...")
+
+	// Store for next step
+	_ = gitURL
+	_ = gitBranch
+
+	fmt.Println("⚠️  Docker build coming in Step 3...")
 
 	return nil
 }
