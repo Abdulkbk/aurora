@@ -10,8 +10,7 @@ import (
 )
 
 // Supported node types in Polar
-// TODO: Add support for other node types (we only support lnd for now).
-var supportedNodeTypes = []string{"lnd"}
+var supportedNodeTypes = []string{"lnd", "bitcoind"}
 
 // Build command flags
 var (
@@ -45,10 +44,11 @@ func init() {
 	buildCmd.Flags().StringVar(&prURL, "pr", "", "GitHub PR URL (e.g., https://github.com/owner/repo/pull/123)")
 	buildCmd.Flags().StringVar(&repoURL, "repo", "", "GitHub repository URL (e.g., https://github.com/owner/repo)")
 	buildCmd.Flags().StringVar(&branch, "branch", "", "Branch name (required with --repo)")
-	buildCmd.Flags().StringVar(&nodeType, "node-type", "", fmt.Sprintf("Node type: %v (auto-detected if not specified)", supportedNodeTypes))
+	buildCmd.Flags().StringVar(&nodeType, "node-type", "", fmt.Sprintf("Node type: %v (required)", supportedNodeTypes))
 	buildCmd.Flags().StringVar(&imageTag, "tag", "", "Custom tag for the Docker image (required)")
 
 	buildCmd.MarkFlagRequired("tag")
+	buildCmd.MarkFlagRequired("node-type")
 
 	rootCmd.AddCommand(buildCmd)
 }
@@ -114,14 +114,8 @@ func runBuild(cmd *cobra.Command, args []string) error {
 		fmt.Printf("🌿 Branch: %s\n", gitBranch)
 	}
 
-	// Determine node type (default to lnd for now)
-	effectiveNodeType := nodeType
-	if effectiveNodeType == "" {
-		effectiveNodeType = "lnd"
-		fmt.Printf("📦 Type:   %s (default)\n", effectiveNodeType)
-	} else {
-		fmt.Printf("📦 Type:   %s\n", effectiveNodeType)
-	}
+	// Node type is now required
+	fmt.Printf("📦 Type:   %s\n", nodeType)
 
 	fmt.Printf("🏷️  Tag:    %s\n", imageTag)
 	fmt.Println()
@@ -141,7 +135,7 @@ func runBuild(cmd *cobra.Command, args []string) error {
 		GitURL:   gitURL,
 		Checkout: gitBranch,
 		Tag:      imageTag + ":aurora",
-		NodeType: effectiveNodeType,
+		NodeType: nodeType,
 	})
 	if err != nil {
 		return fmt.Errorf("build failed: %w", err)

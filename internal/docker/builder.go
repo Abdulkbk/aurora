@@ -14,6 +14,9 @@ import (
 //go:embed dockerfiles/lnd/Dockerfile
 var lndDockerfile embed.FS
 
+//go:embed dockerfiles/bitcoind/Dockerfile
+var bitcoindDockerfile embed.FS
+
 // Builder handles Docker image building.
 type Builder struct{}
 
@@ -109,14 +112,20 @@ func (b *Builder) Build(ctx context.Context, opts BuildOptions) error {
 // getDockerfile returns the embedded Dockerfile for the given node type.
 func (b *Builder) getDockerfile(nodeType string) ([]byte, error) {
 	switch nodeType {
-	case "lnd", "":
+	case "lnd":
 		content, err := lndDockerfile.ReadFile("dockerfiles/lnd/Dockerfile")
 		if err != nil {
 			return nil, fmt.Errorf("failed to read LND Dockerfile: %w", err)
 		}
 		return content, nil
+	case "bitcoind":
+		content, err := bitcoindDockerfile.ReadFile("dockerfiles/bitcoind/Dockerfile")
+		if err != nil {
+			return nil, fmt.Errorf("failed to read bitcoind Dockerfile: %w", err)
+		}
+		return content, nil
 	default:
-		return nil, fmt.Errorf("unsupported node type: %s (currently only 'lnd' is supported)", nodeType)
+		return nil, fmt.Errorf("unsupported node type: %s (supported: lnd, bitcoind)", nodeType)
 	}
 }
 
