@@ -38,6 +38,7 @@ type BuildOptions struct {
 	Checkout string // Branch, tag, or commit to checkout
 	Tag      string // Image tag
 	NodeType string // Node type (lnd, bitcoind, etc.)
+	NoCache  bool   // Build without Docker cache
 }
 
 // Build builds a Docker image with the given options.
@@ -68,8 +69,13 @@ func (b *Builder) Build(ctx context.Context, opts BuildOptions) error {
 		"--build-arg", fmt.Sprintf("checkout=%s", opts.Checkout),
 		"-t", opts.Tag,
 		"-f", dockerfilePath,
-		tmpDir,
 	}
+
+	if opts.NoCache {
+		args = append(args, "--no-cache")
+	}
+
+	args = append(args, tmpDir)
 
 	cmd := exec.CommandContext(ctx, "docker", args...)
 
