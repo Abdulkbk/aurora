@@ -19,6 +19,7 @@ var (
 	branch   string
 	nodeType string
 	imageTag string
+	noCache  bool
 )
 
 var buildCmd = &cobra.Command{
@@ -46,6 +47,7 @@ func init() {
 	buildCmd.Flags().StringVar(&branch, "branch", "", "Branch name (required with --repo)")
 	buildCmd.Flags().StringVar(&nodeType, "node-type", "", fmt.Sprintf("Node type: %v (required)", supportedNodeTypes))
 	buildCmd.Flags().StringVar(&imageTag, "tag", "", "Custom tag for the Docker image (required)")
+	buildCmd.Flags().BoolVar(&noCache, "no-cache", false, "Build the image without using Docker cache")
 
 	buildCmd.MarkFlagRequired("tag")
 	buildCmd.MarkFlagRequired("node-type")
@@ -136,6 +138,7 @@ func runBuild(cmd *cobra.Command, args []string) error {
 		Checkout: gitBranch,
 		Tag:      imageTag + ":aurora",
 		NodeType: nodeType,
+		NoCache:  noCache,
 	})
 	if err != nil {
 		return fmt.Errorf("build failed: %w", err)
