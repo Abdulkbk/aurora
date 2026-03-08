@@ -20,6 +20,9 @@ var bitcoindDockerfile embed.FS
 //go:embed dockerfiles/cln/Dockerfile
 var clnDockerfile embed.FS
 
+//go:embed dockerfiles/btcd/Dockerfile
+var btcdDockerfile embed.FS
+
 // Builder handles Docker image building.
 type Builder struct{}
 
@@ -139,8 +142,14 @@ func (b *Builder) getDockerfile(nodeType string) ([]byte, error) {
 			return nil, fmt.Errorf("failed to read CLN Dockerfile: %w", err)
 		}
 		return content, nil
+	case "btcd":
+		content, err := btcdDockerfile.ReadFile("dockerfiles/btcd/Dockerfile")
+		if err != nil {
+			return nil, fmt.Errorf("failed to read btcd Dockerfile: %w", err)
+		}
+		return content, nil
 	default:
-		return nil, fmt.Errorf("unsupported node type: %s (supported: lnd, bitcoind, cln)", nodeType)
+		return nil, fmt.Errorf("unsupported node type: %s (supported: lnd, bitcoind, cln, btcd)", nodeType)
 	}
 }
 
