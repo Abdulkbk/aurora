@@ -8,7 +8,7 @@ Aurora makes it easy for code reviewers to test proposed changes by building Doc
 
 - 🔗 **Build from PRs** - Just paste a GitHub PR URL and Aurora fetches the fork and branch automatically
 - 🐳 **Docker Integration** - Builds images using embedded Dockerfiles optimized for Polar
-- ⚡ **Lightning-focused** - Currently supports LND with more node types coming soon
+- ⚡ **Lightning-focused** - Supports LND, Bitcoin Core, Core Lightning, and btcd
 - 📦 **Single Binary** - No dependencies, just download and run
 
 ## Installation
@@ -102,15 +102,16 @@ After building an image with Aurora, you can use it in Lightning Polar:
 | `--repo`      | GitHub repository URL      | Either `--pr` or `--repo` |
 | `--branch`    | Branch name                | Required with `--repo`    |
 | `--tag`       | Docker image tag           | ✅ Yes                    |
-| `--node-type` | Node type (default: `lnd`) | No                        |
+| `--node-type` | Node type override (auto-detected if omitted) | No              |
 
 ## Supported Node Types
 
 | Node           | Status         |
 | -------------- | -------------- |
 | LND            | ✅ Supported   |
-| Bitcoin Core   | 🔜 Coming Soon |
-| Core Lightning | 🔜 Coming Soon |
+| Bitcoin Core   | ✅ Supported   |
+| Core Lightning | ✅ Supported   |
+| btcd           | ✅ Supported   |
 | Eclair         | 🔜 Coming Soon |
 | LIT            | 🔜 Coming Soon |
 | Taproot Assets | 🔜 Coming Soon |
