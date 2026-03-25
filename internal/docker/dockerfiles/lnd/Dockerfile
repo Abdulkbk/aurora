@@ -4,7 +4,7 @@ FROM golang:1.25.5-alpine AS builder
 
 # Force Go to use the cgo based DNS resolver. This is required to ensure DNS
 # queries required to connect to linked containers succeed.
-ENV GODEBUG netdns=cgo
+ENV GODEBUG=netdns=cgo
 
 # Pass a tag, branch or a commit using build-arg.  This allows a docker
 # image to be built from a specified Git state.  The default image
