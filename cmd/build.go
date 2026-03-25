@@ -12,6 +12,14 @@ import (
 // Supported node types in Polar
 var supportedNodeTypes = []string{"lnd", "bitcoind", "cln", "btcd"}
 
+// repoToNodeType maps known upstream GitHub repos to their node type.
+var repoToNodeType = map[string]string{
+	"lightningnetwork/lnd":      "lnd",
+	"btcsuite/btcd":             "btcd",
+	"bitcoin/bitcoin":           "bitcoind",
+	"ElementsProject/lightning": "cln",
+}
+
 // Build command flags
 var (
 	prURL    string
@@ -28,16 +36,18 @@ var buildCmd = &cobra.Command{
 	Long: `Build a Docker image from a GitHub PR or fork for use in Lightning Polar.
 
 You can specify either a PR URL or a repository URL with a branch.
+The node type is auto-detected from the repository URL. Use --node-type to
+override this when building from a fork with a non-standard repository name.
 
 Examples:
-  # Build from a PR
+  # Build from a PR (node type auto-detected)
   aurora build --pr https://github.com/lightningnetwork/lnd/pull/1234 --tag my-lnd-test
 
-  # Build from a fork/branch
+  # Build from a fork/branch (node type auto-detected)
   aurora build --repo https://github.com/myuser/lnd --branch feature-x --tag my-lnd-fork
 
-  # Build with explicit node type
-  aurora build --pr https://github.com/lightningnetwork/lnd/pull/1234 --node-type lnd --tag test`,
+  # Build from a fork with a custom repo name (node type cannot be auto-detected)
+  aurora build --repo https://github.com/myuser/my-lnd-fork --branch feature-x --node-type lnd --tag test`,
 	RunE: runBuild,
 }
 
@@ -45,12 +55,11 @@ func init() {
 	buildCmd.Flags().StringVar(&prURL, "pr", "", "GitHub PR URL (e.g., https://github.com/owner/repo/pull/123)")
 	buildCmd.Flags().StringVar(&repoURL, "repo", "", "GitHub repository URL (e.g., https://github.com/owner/repo)")
 	buildCmd.Flags().StringVar(&branch, "branch", "", "Branch name (required with --repo)")
-	buildCmd.Flags().StringVar(&nodeType, "node-type", "", fmt.Sprintf("Node type: %v (required)", supportedNodeTypes))
+	buildCmd.Flags().StringVar(&nodeType, "node-type", "", fmt.Sprintf("Node type override: %v (auto-detected if omitted)", supportedNodeTypes))
 	buildCmd.Flags().StringVar(&imageTag, "tag", "", "Custom tag for the Docker image (required)")
 	buildCmd.Flags().BoolVar(&noCache, "no-cache", false, "Build the image without using Docker cache")
 
 	buildCmd.MarkFlagRequired("tag")
-	buildCmd.MarkFlagRequired("node-type")
 
 	rootCmd.AddCommand(buildCmd)
 }
@@ -77,7 +86,7 @@ func runBuild(cmd *cobra.Command, args []string) error {
 	fmt.Println("🚀 Aurora Build")
 	fmt.Println("===============")
 
-	var gitURL, gitBranch string
+	var gitURL, gitBranch, owner, repo string
 
 	if prURL != "" {
 		// Parse PR URL and fetch details from GitHub API
@@ -85,6 +94,8 @@ func runBuild(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
+
+		owner, repo = prInfo.Owner, prInfo.Repo
 
 		fmt.Printf("📋 PR:     %s/%s#%d\n", prInfo.Owner, prInfo.Repo, prInfo.PRNumber)
 		fmt.Println("🔍 Fetching PR details from GitHub...")
@@ -109,6 +120,7 @@ func runBuild(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
+		owner, repo = repoInfo.Owner, repoInfo.Repo
 		gitURL = repoInfo.CloneURL()
 		gitBranch = branch
 
@@ -116,7 +128,18 @@ func runBuild(cmd *cobra.Command, args []string) error {
 		fmt.Printf("🌿 Branch: %s\n", gitBranch)
 	}
 
-	// Node type is now required
+	// Auto-detect node type if not provided
+	if nodeType == "" {
+		detected, ok := detectNodeType(owner, repo)
+		if !ok {
+			return fmt.Errorf(
+				"could not auto-detect node type for %s/%s, please specify --node-type (one of: %v)",
+				owner, repo, supportedNodeTypes,
+			)
+		}
+		nodeType = detected
+	}
+
 	fmt.Printf("📦 Type:   %s\n", nodeType)
 
 	fmt.Printf("🏷️  Tag:    %s\n", imageTag)
@@ -160,4 +183,9 @@ func isValidNodeType(nt string) bool {
 		}
 	}
 	return false
+}
+
+func detectNodeType(owner, repo string) (string, bool) {
+	nt, ok := repoToNodeType[owner+"/"+repo]
+	return nt, ok
 }
