@@ -83,7 +83,7 @@ func runBuild(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid node type %q, must be one of: %v", nodeType, supportedNodeTypes)
 	}
 
-	fmt.Println("🚀 Aurora Build")
+	fmt.Println("[aurora] build")
 	fmt.Println("===============")
 
 	var gitURL, gitBranch, owner, repo string
@@ -97,8 +97,8 @@ func runBuild(cmd *cobra.Command, args []string) error {
 
 		owner, repo = prInfo.Owner, prInfo.Repo
 
-		fmt.Printf("📋 PR:     %s/%s#%d\n", prInfo.Owner, prInfo.Repo, prInfo.PRNumber)
-		fmt.Println("🔍 Fetching PR details from GitHub...")
+		fmt.Printf(">> PR:     %s/%s#%d\n", prInfo.Owner, prInfo.Repo, prInfo.PRNumber)
+		fmt.Println(".. fetching PR details")
 
 		client := github.NewClient()
 		prDetails, err := client.GetPRDetails(prInfo.Owner, prInfo.Repo, prInfo.PRNumber)
@@ -106,10 +106,10 @@ func runBuild(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("failed to fetch PR details: %w", err)
 		}
 
-		fmt.Printf("📝 Title:  %s\n", prDetails.Title)
-		fmt.Printf("📊 State:  %s\n", prDetails.State)
-		fmt.Printf("🔗 Fork:   %s\n", prDetails.ForkURL)
-		fmt.Printf("🌿 Branch: %s\n", prDetails.Branch)
+		fmt.Printf(">> Title:  %s\n", prDetails.Title)
+		fmt.Printf(">> State:  %s\n", prDetails.State)
+		fmt.Printf(">> Fork:   %s\n", prDetails.ForkURL)
+		fmt.Printf(">> Branch: %s\n", prDetails.Branch)
 
 		gitURL = prDetails.ForkURL
 		gitBranch = prDetails.Branch
@@ -124,8 +124,8 @@ func runBuild(cmd *cobra.Command, args []string) error {
 		gitURL = repoInfo.CloneURL()
 		gitBranch = branch
 
-		fmt.Printf("🔗 Repo:   %s\n", gitURL)
-		fmt.Printf("🌿 Branch: %s\n", gitBranch)
+		fmt.Printf(">> Repo:   %s\n", gitURL)
+		fmt.Printf(">> Branch: %s\n", gitBranch)
 	}
 
 	// Auto-detect node type if not provided
@@ -140,9 +140,9 @@ func runBuild(cmd *cobra.Command, args []string) error {
 		nodeType = detected
 	}
 
-	fmt.Printf("📦 Type:   %s\n", nodeType)
+	fmt.Printf(">> type:   %s\n", nodeType)
 
-	fmt.Printf("🏷️  Tag:    %s\n", imageTag)
+	fmt.Printf(">> tag:    %s\n", imageTag)
 	fmt.Println()
 
 	// Create Docker builder
@@ -152,7 +152,7 @@ func runBuild(cmd *cobra.Command, args []string) error {
 	}
 
 	// Build the image
-	fmt.Println("🔨 Building Docker image...")
+	fmt.Println(".. building image")
 	fmt.Println("----------------------------")
 
 	ctx := context.Background()
@@ -169,7 +169,7 @@ func runBuild(cmd *cobra.Command, args []string) error {
 
 	fmt.Println()
 	fmt.Println("----------------------------")
-	fmt.Printf("✅ Build complete! Image: %s\n", imageTag)
+	fmt.Printf("[ok] build complete! Image: %s\n", imageTag)
 	fmt.Println()
 	fmt.Println("To use in Polar, add this as a custom node image.")
 

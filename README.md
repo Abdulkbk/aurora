@@ -57,22 +57,22 @@ aurora build --repo https://github.com/username/lnd --branch feature-branch --ta
 ### Example Output
 
 ```
-🚀 Aurora Build
+ [aurora] build
 ===============
-📋 PR:     lightningnetwork/lnd#10545
-🔍 Fetching PR details from GitHub...
-📝 Title:  switchrpc: improve SendOnion error handling
-📊 State:  open
-🔗 Fork:   https://github.com/calvinrzachman/lnd.git
-🌿 Branch: switchrpc-error-handle-combined
-📦 Type:   lnd (default)
-🏷️  Tag:    sendonion
+>> PR:     lightningnetwork/lnd#10545
+.. fetching PR details
+>> Title:  switchrpc: improve SendOnion error handling
+>> State:  open
+>> Fork:   https://github.com/calvinrzachman/lnd.git
+>> Branch: switchrpc-error-handle-combined
+>> type:   lnd (default)
+>> tag:    sendonion
 
-🔨 Building Docker image...
+.. building image
 ----------------------------
 [... Docker build output ...]
 ----------------------------
-✅ Build complete! Image: sendonion:aurora
+[ok] build complete! Image: sendonion:aurora
 
 To use in Polar, add this as a custom node image.
 ```
