@@ -37,7 +37,7 @@ type prAPIResponse struct {
 	State string `json:"state"`
 	Head  struct {
 		Ref  string `json:"ref"` // Branch name
-		Repo struct {
+		Repo *struct {
 			CloneURL string `json:"clone_url"`
 		} `json:"repo"`
 	} `json:"head"`
@@ -78,8 +78,9 @@ func (c *Client) GetPRDetails(owner, repo string, prNumber int) (*PRDetails, err
 		return nil, fmt.Errorf("failed to parse GitHub response: %w", err)
 	}
 
-	if apiResp.Head.Repo.CloneURL == "" {
-		return nil, fmt.Errorf("PR fork repository not available (may have been deleted)")
+	// Check if the fork repository exists (it's nil if the fork was deleted)
+	if apiResp.Head.Repo == nil || apiResp.Head.Repo.CloneURL == "" {
+		return nil, fmt.Errorf("fork repository not available — the contributor may have deleted their fork")
 	}
 
 	return &PRDetails{
