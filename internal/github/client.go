@@ -78,9 +78,8 @@ func (c *Client) GetPRDetails(owner, repo string, prNumber int) (*PRDetails, err
 		return nil, fmt.Errorf("failed to parse GitHub response: %w", err)
 	}
 
-	// Check if the fork repository exists (it's nil if the fork was deleted)
 	if apiResp.Head.Repo == nil || apiResp.Head.Repo.CloneURL == "" {
-		return nil, fmt.Errorf("fork repository not available — the contributor may have deleted their fork")
+		return nil, fmt.Errorf("fork repository deleted or not available")
 	}
 
 	return &PRDetails{

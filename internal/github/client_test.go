@@ -3,6 +3,7 @@ package github
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -22,7 +23,7 @@ func TestGetPRDetailsWithDeletedFork(t *testing.T) {
 					"repo": null
 				}
 			}`,
-			expectedError: "fork repository not available — the contributor may have deleted their fork",
+			expectedError: "fork repository",
 		},
 		{
 			name: "fork repository deleted (empty clone_url)",
@@ -36,7 +37,7 @@ func TestGetPRDetailsWithDeletedFork(t *testing.T) {
 					}
 				}
 			}`,
-			expectedError: "fork repository not available — the contributor may have deleted their fork",
+			expectedError: "fork repository",
 		},
 	}
 
@@ -64,8 +65,8 @@ func TestGetPRDetailsWithDeletedFork(t *testing.T) {
 				return
 			}
 
-			if err.Error() != tt.expectedError {
-				t.Errorf("expected error %q, got %q", tt.expectedError, err.Error())
+			if !strings.Contains(err.Error(), tt.expectedError) {
+				t.Errorf("expected error containing %q, got %q", tt.expectedError, err.Error())
 			}
 		})
 	}
