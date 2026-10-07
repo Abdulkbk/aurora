@@ -6,6 +6,11 @@ FROM golang:1.25.5-alpine AS builder
 # queries required to connect to linked containers succeed.
 ENV GODEBUG=netdns=cgo
 
+# The golang base image sets GOTOOLCHAIN=local, which fails the build when the
+# checked out branch requires a newer Go than the base image ships. Let Go
+# download the toolchain required by go.mod instead.
+ENV GOTOOLCHAIN=auto
+
 # Pass a tag, branch or a commit using build-arg.  This allows a docker
 # image to be built from a specified Git state.  The default image
 # will use the Git tip of master by default.
